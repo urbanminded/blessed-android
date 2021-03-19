@@ -1765,7 +1765,7 @@ public class BluetoothPeripheral {
         }
     }
 
-    interface InternalCallback {
+    public interface InternalCallback {
 
         /**
          * {@link BluetoothPeripheral} has successfully connected.
