@@ -6,6 +6,7 @@ import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
+import android.util.Log;
 
 import com.welie.blessed.BluetoothBytesParser;
 import com.welie.blessed.BluetoothCentralManager;
@@ -20,6 +21,7 @@ import com.welie.blessed.PhyType;
 import com.welie.blessed.ScanFailure;
 import com.welie.blessed.WriteType;
 
+
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteOrder;
@@ -28,7 +30,7 @@ import java.util.Date;
 import java.util.TimeZone;
 import java.util.UUID;
 
-import timber.log.Timber;
+// import timber.log.Timber;
 
 import static android.bluetooth.BluetoothGatt.CONNECTION_PRIORITY_HIGH;
 import static android.bluetooth.BluetoothGattCharacteristic.PROPERTY_WRITE;
@@ -157,23 +159,23 @@ class BluetoothHandler {
         public void onNotificationStateUpdate(@NotNull BluetoothPeripheral peripheral, @NotNull BluetoothGattCharacteristic characteristic, @NotNull GattStatus status) {
             if (status == GattStatus.SUCCESS) {
                 final boolean isNotifying = peripheral.isNotifying(characteristic);
-                Timber.i("SUCCESS: Notify set to '%s' for %s", isNotifying, characteristic.getUuid());
+                 Log.i("", String.format("SUCCESS: Notify set to '%s' for %s", isNotifying, characteristic.getUuid()));
                 if (characteristic.getUuid().equals(CONTOUR_CLOCK)) {
                     writeContourClock(peripheral);
                 } else if (characteristic.getUuid().equals(GLUCOSE_RECORD_ACCESS_POINT_CHARACTERISTIC_UUID)) {
                     writeGetAllGlucoseMeasurements(peripheral);
                 }
             } else {
-                Timber.e("ERROR: Changing notification state failed for %s (%s)", characteristic.getUuid(), status);
+                 Log.e("", String.format("ERROR: Changing notification state failed for %s (%s)", characteristic.getUuid(), status));
             }
         }
 
         @Override
         public void onCharacteristicWrite(@NotNull BluetoothPeripheral peripheral, @NotNull byte[] value, @NotNull BluetoothGattCharacteristic characteristic, @NotNull GattStatus status) {
             if (status == GattStatus.SUCCESS) {
-                Timber.i("SUCCESS: Writing <%s> to <%s>", bytes2String(value), characteristic.getUuid());
+                 Log.i("", String.format("SUCCESS: Writing <%s> to <%s>", bytes2String(value), characteristic.getUuid()));
             } else {
-                Timber.i("ERROR: Failed writing <%s> to <%s> (%s)", bytes2String(value), characteristic.getUuid(), status);
+                 Log.i("", String.format("ERROR: Failed writing <%s> to <%s> (%s)", bytes2String(value), characteristic.getUuid(), status));
             }
         }
 
@@ -189,19 +191,19 @@ class BluetoothHandler {
                 Intent intent = new Intent(MEASUREMENT_BLOODPRESSURE);
                 intent.putExtra(MEASUREMENT_BLOODPRESSURE_EXTRA, measurement);
                 sendMeasurement(intent, peripheral);
-                Timber.d("%s", measurement);
+                 Log.d("", String.format("%s", measurement));
             } else if (characteristicUUID.equals(TEMPERATURE_MEASUREMENT_CHARACTERISTIC_UUID)) {
                 TemperatureMeasurement measurement = new TemperatureMeasurement(value);
                 Intent intent = new Intent(MEASUREMENT_TEMPERATURE);
                 intent.putExtra(MEASUREMENT_TEMPERATURE_EXTRA, measurement);
                 sendMeasurement(intent, peripheral);
-                Timber.d("%s", measurement);
+                 Log.d("", String.format("%s", measurement));
             } else if (characteristicUUID.equals(HEARTRATE_MEASUREMENT_CHARACTERISTIC_UUID)) {
                 HeartRateMeasurement measurement = new HeartRateMeasurement(value);
                 Intent intent = new Intent(MEASUREMENT_HEARTRATE);
                 intent.putExtra(MEASUREMENT_HEARTRATE_EXTRA, measurement);
                 sendMeasurement(intent, peripheral);
-                Timber.d("%s", measurement);
+                 Log.d("", String.format("%s", measurement));
             } else if (characteristicUUID.equals(PLX_CONTINUOUS_MEASUREMENT_CHAR_UUID)) {
                 PulseOximeterContinuousMeasurement measurement = new PulseOximeterContinuousMeasurement(value);
                 if (measurement.getSpO2() <= 100 && measurement.getPulseRate() <= 220) {
@@ -209,28 +211,28 @@ class BluetoothHandler {
                     intent.putExtra(MEASUREMENT_PULSE_OX_EXTRA_CONTINUOUS, measurement);
                     sendMeasurement(intent, peripheral);
                 }
-                Timber.d("%s", measurement);
+                 Log.d("", String.format("%s", measurement));
             } else if (characteristicUUID.equals(PLX_SPOT_MEASUREMENT_CHAR_UUID)) {
                 PulseOximeterSpotMeasurement measurement = new PulseOximeterSpotMeasurement(value);
                 Intent intent = new Intent(MEASUREMENT_PULSE_OX);
                 intent.putExtra(MEASUREMENT_PULSE_OX_EXTRA_SPOT, measurement);
                 sendMeasurement(intent, peripheral);
-                Timber.d("%s", measurement);
+                 Log.d("", String.format("%s", measurement));
             } else if (characteristicUUID.equals(WSS_MEASUREMENT_CHAR_UUID)) {
                 WeightMeasurement measurement = new WeightMeasurement(value);
                 Intent intent = new Intent(MEASUREMENT_WEIGHT);
                 intent.putExtra(MEASUREMENT_WEIGHT_EXTRA, measurement);
                 sendMeasurement(intent, peripheral);
-                Timber.d("%s", measurement);
+                 Log.d("", String.format("%s", measurement));
             } else if (characteristicUUID.equals((GLUCOSE_MEASUREMENT_CHARACTERISTIC_UUID))) {
                 GlucoseMeasurement measurement = new GlucoseMeasurement(value);
                 Intent intent = new Intent(MEASUREMENT_GLUCOSE);
                 intent.putExtra(MEASUREMENT_GLUCOSE_EXTRA, measurement);
                 sendMeasurement(intent, peripheral);
-                Timber.d("%s", measurement);
+                 Log.d("", String.format("%s", measurement));
             } else if (characteristicUUID.equals(CURRENT_TIME_CHARACTERISTIC_UUID)) {
                 Date currentTime = parser.getDateTime();
-                Timber.i("Received device time: %s", currentTime);
+                 Log.i("", String.format("Received device time: %s", currentTime));
 
                 // Deal with Omron devices where we can only write currentTime under specific conditions
                 final String name = peripheral.getName();
@@ -250,22 +252,22 @@ class BluetoothHandler {
                 }
             } else if (characteristicUUID.equals(BATTERY_LEVEL_CHARACTERISTIC_UUID)) {
                 int batteryLevel = parser.getIntValue(FORMAT_UINT8);
-                Timber.i("Received battery level %d%%", batteryLevel);
+                 Log.i("", String.format("Received battery level %d%%", batteryLevel));
             } else if (characteristicUUID.equals(MANUFACTURER_NAME_CHARACTERISTIC_UUID)) {
                 String manufacturer = parser.getStringValue(0);
-                Timber.i("Received manufacturer: %s", manufacturer);
+                 Log.i("", String.format("Received manufacturer: %s", manufacturer));
             } else if (characteristicUUID.equals(MODEL_NUMBER_CHARACTERISTIC_UUID)) {
                 String modelNumber = parser.getStringValue(0);
-                Timber.i("Received modelnumber: %s", modelNumber);
+                 Log.i("", String.format("Received modelnumber: %s", modelNumber));
             } else if (characteristicUUID.equals(PNP_ID_CHARACTERISTIC_UUID)) {
                 String modelNumber = parser.getStringValue(0);
-                Timber.i("Received pnp: %s", modelNumber);
+                 Log.i("", String.format("Received pnp: %s", modelNumber));
             }
         }
 
         @Override
         public void onMtuChanged(@NotNull BluetoothPeripheral peripheral, int mtu, @NotNull GattStatus status) {
-            Timber.i("new MTU set: %d", mtu);
+             Log.i("", String.format("new MTU set: %d", mtu));
         }
 
         private void sendMeasurement(@NotNull Intent intent, @NotNull BluetoothPeripheral peripheral ) {
@@ -302,17 +304,17 @@ class BluetoothHandler {
 
         @Override
         public void onConnectedPeripheral(@NotNull BluetoothPeripheral peripheral) {
-            Timber.i("connected to '%s'", peripheral.getName());
+             Log.i("", String.format("connected to '%s'", peripheral.getName()));
         }
 
         @Override
         public void onConnectionFailed(@NotNull BluetoothPeripheral peripheral, final @NotNull HciStatus status) {
-            Timber.e("connection '%s' failed with status %s", peripheral.getName(), status);
+             Log.e("", String.format("connection '%s' failed with status %s", peripheral.getName(), status));
         }
 
         @Override
         public void onDisconnectedPeripheral(@NotNull final BluetoothPeripheral peripheral, final @NotNull HciStatus status) {
-            Timber.i("disconnected '%s' with status %s", peripheral.getName(), status);
+            // Timber.i("disconnected '%s' with status %s", peripheral.getName(), status);
 
             // Reconnect to this device when it becomes available again
             handler.postDelayed(new Runnable() {
@@ -326,14 +328,14 @@ class BluetoothHandler {
 
         @Override
         public void onDiscoveredPeripheral(@NotNull BluetoothPeripheral peripheral, @NotNull ScanResult scanResult) {
-            Timber.i("Found peripheral '%s'", peripheral.getName());
+            // Timber.i("Found peripheral '%s'", peripheral.getName());
             central.stopScan();
             central.connectPeripheral(peripheral, peripheralCallback);
         }
 
         @Override
         public void onBluetoothAdapterStateChanged(int state) {
-            Timber.i("bluetooth adapter changed state to %d", state);
+            // Timber.i("bluetooth adapter changed state to %d", state);
             if (state == BluetoothAdapter.STATE_ON) {
                 // Bluetooth is on now, start scanning again
                 // Scan for peripherals with a certain service UUIDs
@@ -344,7 +346,7 @@ class BluetoothHandler {
 
         @Override
         public void onScanFailed(@NotNull ScanFailure scanFailure) {
-            Timber.i("scanning failed with error %s", scanFailure);
+            // Timber.i("scanning failed with error %s", scanFailure);
         }
     };
 
@@ -359,7 +361,7 @@ class BluetoothHandler {
         this.context = context;
 
         // Plant a tree
-        Timber.plant(new Timber.DebugTree());
+        // Timber.plant(new Timber.DebugTree());
 
         // Create BluetoothCentral
         central = new BluetoothCentralManager(context, bluetoothCentralManagerCallback, new Handler());

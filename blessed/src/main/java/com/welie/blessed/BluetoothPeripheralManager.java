@@ -43,6 +43,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -122,13 +123,13 @@ public class BluetoothPeripheralManager {
                     handleDeviceDisconnected(device);
                 }
             } else {
-                // Timber.i("Device '%s' disconnected with status %d", device.getName(), status);
+                Log.i("[BLEssed]", String.format("Device '%s' disconnected with status %d", device.getName(), status));
                 handleDeviceDisconnected(device);
             }
         }
 
         private void handleDeviceConnected(@NotNull final BluetoothDevice device) {
-            // Timber.i("Central '%s' (%s) connected", device.getName(), device.getAddress());
+            Log.i("[BLEssed]", String.format("Central '%s' (%s) connected", device.getName(), device.getAddress()));
             final BluetoothCentral bluetoothCentral = new BluetoothCentral(device.getAddress(), device.getName());
             connectedCentralsMap.put(bluetoothCentral.getAddress(), bluetoothCentral);
             mainHandler.post(new Runnable() {
@@ -141,7 +142,7 @@ public class BluetoothPeripheralManager {
 
         private void handleDeviceDisconnected(@NotNull final BluetoothDevice device) {
             final BluetoothCentral bluetoothCentral = getCentral(device);
-            // Timber.i("Central '%s' (%s) disconnected", bluetoothCentral.getName(), bluetoothCentral.getAddress());
+            Log.i("[BLEssed]", String.format("Central '%s' (%s) disconnected", bluetoothCentral.getName(), bluetoothCentral.getAddress()));
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -164,7 +165,7 @@ public class BluetoothPeripheralManager {
 
         @Override
         public void onCharacteristicReadRequest(@NotNull final BluetoothDevice device, final int requestId, final int offset, @NotNull final BluetoothGattCharacteristic characteristic) {
-            // Timber.i("read request for characteristic <%s> with offset %d", characteristic.getUuid(), offset);
+            Log.i("[BLEssed]", String.format("read request for characteristic <%s> with offset %d", characteristic.getUuid(), offset));
 
             final BluetoothCentral bluetoothCentral = getCentral(device);
             mainHandler.post(new Runnable() {
@@ -185,7 +186,7 @@ public class BluetoothPeripheralManager {
 
         @Override
         public void onCharacteristicWriteRequest(@NotNull final BluetoothDevice device, final int requestId, @NotNull final BluetoothGattCharacteristic characteristic, final boolean preparedWrite, final boolean responseNeeded, final int offset, @Nullable final byte[] value) {
-            // Timber.i("write characteristic %s request <%s> offset %d for <%s>", responseNeeded ? "WITH_RESPONSE" : "WITHOUT_RESPONSE", bytes2String(value), offset, characteristic.getUuid());
+            Log.i("[BLEssed]", String.format("write characteristic %s request <%s> offset %d for <%s>", responseNeeded ? "WITH_RESPONSE" : "WITHOUT_RESPONSE", bytes2String(value), offset, characteristic.getUuid()));
 
             final byte[] safeValue = nonnullOf(value);
             final BluetoothCentral bluetoothCentral = getCentral(device);
@@ -221,7 +222,7 @@ public class BluetoothPeripheralManager {
 
         @Override
         public void onDescriptorReadRequest(@NotNull final BluetoothDevice device, final int requestId, final int offset, @NotNull final BluetoothGattDescriptor descriptor) {
-            // Timber.i("read request for descriptor <%s> with offset %d", descriptor.getUuid(), offset);
+            Log.i("[BLEssed]", String.format("read request for descriptor <%s> with offset %d", descriptor.getUuid(), offset));
 
             final BluetoothCentral bluetoothCentral = getCentral(device);
             mainHandler.post(new Runnable() {
@@ -245,7 +246,7 @@ public class BluetoothPeripheralManager {
             final byte[] safeValue = nonnullOf(value);
             final BluetoothGattCharacteristic characteristic = Objects.requireNonNull(descriptor.getCharacteristic(), "Descriptor does not have characteristic");
 
-            // Timber.i("write descriptor %s request <%s> offset %d for <%s>", responseNeeded ? "WITH_RESPONSE" : "WITHOUT_RESPONSE", bytes2String(value), offset, descriptor.getUuid());
+            Log.i("[BLEssed]", String.format("write descriptor %s request <%s> offset %d for <%s>", responseNeeded ? "WITH_RESPONSE" : "WITHOUT_RESPONSE", bytes2String(value), offset, descriptor.getUuid()));
 
             final BluetoothCentral bluetoothCentral = getCentral(device);
             mainHandler.post(new Runnable() {
@@ -283,10 +284,10 @@ public class BluetoothPeripheralManager {
                     if (status == GattStatus.SUCCESS && descriptor.getUuid().equals(CCC_DESCRIPTOR_UUID)) {
                         if (Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)
                                 || Arrays.equals(safeValue, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)) {
-                            // Timber.i("notifying enabled for <%s>", characteristic.getUuid());
+                            Log.i("[BLEssed]", String.format("notifying enabled for <%s>", characteristic.getUuid()));
                             callback.onNotifyingEnabled(bluetoothCentral, characteristic);
                         } else {
-                            // Timber.i("notifying disabled for <%s>", characteristic.getUuid());
+                            Log.i("[BLEssed]", String.format("notifying disabled for <%s>", characteristic.getUuid()));
                             callback.onNotifyingDisabled(bluetoothCentral, characteristic);
                         }
                     }
@@ -371,7 +372,7 @@ public class BluetoothPeripheralManager {
 
         @Override
         public void onMtuChanged(@NotNull final BluetoothDevice device, final int mtu) {
-            // Timber.i("new MTU: %d", mtu);
+            Log.i("[BLEssed]", String.format("new MTU: %d", mtu));
             BluetoothCentral bluetoothCentral = getCentral(device);
             bluetoothCentral.setCurrentMtu(mtu);
         }
@@ -390,7 +391,7 @@ public class BluetoothPeripheralManager {
     protected final AdvertiseCallback advertiseCallback = new AdvertiseCallback() {
         @Override
         public void onStartSuccess(@NotNull final AdvertiseSettings settingsInEffect) {
-            // Timber.i("advertising started");
+            Log.i("[BLEssed]", String.format("advertising started"));
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -402,7 +403,7 @@ public class BluetoothPeripheralManager {
         @Override
         public void onStartFailure(final int errorCode) {
             final AdvertiseError advertiseError = AdvertiseError.fromValue(errorCode);
-            // Timber.e("advertising failed with error '%s'", advertiseError);
+            Log.e("[BLEssed]", String.format("advertising failed with error '%s'", advertiseError));
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -413,7 +414,7 @@ public class BluetoothPeripheralManager {
     };
 
     protected void onAdvertisingStopped() {
-        // Timber.i("advertising stopped");
+        Log.i("[BLEssed]", "advertising stopped");
         mainHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -467,7 +468,7 @@ public class BluetoothPeripheralManager {
      */
     public void startAdvertising(@NotNull final AdvertiseSettings settings, @NotNull final AdvertiseData advertiseData, @NotNull final AdvertiseData scanResponse) {
         if (!bluetoothAdapter.isMultipleAdvertisementSupported()) {
-            // Timber.e("device does not support advertising");
+            Log.e("[BLEssed]", "device does not support advertising");
         } else {
             bluetoothLeAdvertiser.startAdvertising(settings, advertiseData, scanResponse, advertiseCallback);
         }
@@ -490,7 +491,7 @@ public class BluetoothPeripheralManager {
      * <p>If the local peripheral has already exposed services when this function
      * is called, a service update notification will be sent to all clients.
      *
-     * A callback on {@link BluetoothPeripheralManagerCallback#onServiceAdded)} will be received when this operation has completed
+     * A callback on {@link BluetoothPeripheralManagerCallback#onServiceAdded} will be received when this operation has completed
      *
      * @param service the service to add
      * @return true if the operation was enqueued, false otherwise
@@ -502,7 +503,7 @@ public class BluetoothPeripheralManager {
             @Override
             public void run() {
                 if (!bluetoothGattServer.addService(service)) {
-                    // Timber.e("adding service %s failed", service.getUuid());
+                    Log.e("[BLEssed]", String.format("adding service %s failed", service.getUuid()));
                     completedCommand();
                 }
             }
@@ -511,7 +512,7 @@ public class BluetoothPeripheralManager {
         if (result) {
             nextCommand();
         } else {
-            // Timber.e("could not enqueue add service command");
+            Log.e("[BLEssed]", "could not enqueue add service command");
         }
         return result;
     }
@@ -586,7 +587,7 @@ public class BluetoothPeripheralManager {
                 currentNotifyCharacteristic = characteristic;
                 characteristic.setValue(value);
                 if (!bluetoothGattServer.notifyCharacteristicChanged(bluetoothDevice, characteristic, confirm)) {
-                    // Timber.e("notifying characteristic changed failed for <%s>", characteristic.getUuid());
+                    Log.e("[BLEssed]", String.format("notifying characteristic changed failed for <%s>", characteristic.getUuid()));
                     BluetoothPeripheralManager.this.completedCommand();
                 }
             }
@@ -595,7 +596,7 @@ public class BluetoothPeripheralManager {
         if (result) {
             nextCommand();
         } else {
-            // Timber.e("could not enqueue notify command");
+            Log.e("[BLEssed]", "could not enqueue notify command");
         }
         return result;
     }
@@ -613,7 +614,7 @@ public class BluetoothPeripheralManager {
     private void cancelConnection(@NotNull final BluetoothDevice bluetoothDevice) {
         Objects.requireNonNull(bluetoothDevice, DEVICE_IS_NULL);
 
-        // Timber.i("cancelConnection with '%s' (%s)", bluetoothDevice.getName(), bluetoothDevice.getAddress());
+        Log.i("[BLEssed]", String.format("cancelConnection with '%s' (%s)", bluetoothDevice.getName(), bluetoothDevice.getAddress()));
         bluetoothGattServer.cancelConnection(bluetoothDevice);
     }
 
@@ -661,7 +662,7 @@ public class BluetoothPeripheralManager {
                     try {
                         bluetoothCommand.run();
                     } catch (Exception ex) {
-                        // Timber.e(ex, "command exception");
+                        Log.e("[BLEssed]", ex + " command exception");
                         BluetoothPeripheralManager.this.completedCommand();
                     }
                 }
@@ -709,17 +710,17 @@ public class BluetoothPeripheralManager {
     private void handleAdapterState(final int state) {
         switch (state) {
             case BluetoothAdapter.STATE_OFF:
-                // Timber.d("bluetooth turned off");
+                Log.d("[BLEssed]", "bluetooth turned off");
                 cancelAllConnectionsWhenBluetoothOff();
                 break;
             case BluetoothAdapter.STATE_TURNING_OFF:
-                // Timber.d("bluetooth turning off");
+                Log.d("[BLEssed]", "bluetooth turning off");
                 break;
             case BluetoothAdapter.STATE_ON:
-                // Timber.d("bluetooth turned on");
+                Log.d("[BLEssed]", "bluetooth turned on");
                 break;
             case BluetoothAdapter.STATE_TURNING_ON:
-                // Timber.d("bluetooth turning on");
+                Log.d("[BLEssed]", "bluetooth turning on");
                 break;
         }
     }

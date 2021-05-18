@@ -14,6 +14,7 @@ import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 
 import com.welie.blessed.BluetoothCentralManager;
@@ -25,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import timber.log.Timber;
+// import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
                 checkPermissions();
             }
         } else {
-            Timber.e("This device has no Bluetooth hardware");
+            Log.e("", "This device has no Bluetooth hardware");
         }
     }
 
@@ -95,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
             String action = intent.getAction();
             if (action != null && action.equals(LocationManager.MODE_CHANGED_ACTION)) {
                 boolean isEnabled = areLocationServicesEnabled();
-                Timber.i("Location service state changed to: %s", isEnabled ? "on" : "off");
+                Log.i("", String.format("Location service state changed to: %s", isEnabled ? "on" : "off"));
                 checkPermissions();
             }
         }
@@ -215,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean areLocationServicesEnabled() {
         LocationManager locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         if (locationManager == null) {
-            Timber.e("could not get location manager");
+             Log.e("", "could not get location manager");
             return false;
         }
 
